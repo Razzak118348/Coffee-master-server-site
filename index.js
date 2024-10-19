@@ -2,8 +2,9 @@ const express = require('express');
 const app = express();
 require('dotenv').config();
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
+
 
 // Middleware
 app.use(cors());
@@ -33,10 +34,70 @@ async function run() {
     // Initialize the coffee collection
     coffeeCollection = client.db('coffeeDB').collection('coffee');
 
+//getitem from database :
+
+app.get('/coffee',async(req,res)=>{
+  const cursor = coffeeCollection.find()
+  const result = await  cursor.toArray()
+res.send(result)
+})
+
+//
+app.get('/coffee/:id',async(req,res)=>{
+  const id = req.params.id;
+  const query = {_id: new ObjectId(id) };//work as a filter
+  const result = await coffeeCollection.findOne(query);
+res.send(result)
+}
+)
+
+    // API endpoint to add new coffee
+app.post('/coffee', async (req, res) => {
+  const newCoffee = req.body;
+  console.log(newCoffee);
+  const result = await coffeeCollection.insertOne(newCoffee);
+  res.send(result);
+});
+
+//update coffee
+app.put('/coffee/:id', async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };//work as a filter
+
+  const updatedCoffee = req.body;
+
+  const coffee = {
+    $set: {
+      name: updatedCoffee.name,
+      quantity: updatedCoffee.quantity,
+      supplier: updatedCoffee.supplier,
+      teast: updatedCoffee.teast,
+      details:updatedCoffee.details,
+      price :updatedCoffee.price,
+      category: updatedCoffee.category,
+      photo:  updatedCoffee.photo,
+
+    }
+  }
+  const result = await coffeeCollection.updateOne(query,coffee)
+res.send(result);
+})
+
+
+  //delete specific  item from database
+app.delete('/coffee/:id',async(req,res)=>{
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await coffeeCollection.deleteOne(query);
+  res.send(result)
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } catch (error) {
+  }
+
+  catch (error) {
     console.error("Failed to connect to MongoDB:", error);
     process.exit(1); // Exit if there's a connection error
   }
@@ -45,18 +106,7 @@ async function run() {
 // Start the MongoDB connection
 run().catch(console.dir);
 
-// API endpoint to add new coffee
-app.post('/coffee', async (req, res) => {
-  const newCoffee = req.body;
-  console.log(newCoffee);
-  try {
-    const result = await coffeeCollection.insertOne(newCoffee);
-    res.status(201).send(result); // Send a success response with the inserted document
-  } catch (error) {
-    console.error("Error inserting coffee:", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
+
 
 // Root endpoint
 app.get('/', (req, res) => {
