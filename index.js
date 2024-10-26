@@ -33,7 +33,7 @@ async function run() {
 
     // Initialize the coffee collection
     coffeeCollection = client.db('coffeeDB').collection('coffee');
-
+const userCollection = client.db('coffeeDB').collection('user');
 //getitem from database :
 
 app.get('/coffee',async(req,res)=>{
@@ -93,6 +93,15 @@ app.delete('/coffee/:id',async(req,res)=>{
   res.send(result)
     })
 
+
+//user related api
+app.post('/user',async(req,res)=>{
+  const user = req.body;
+  const result = await userCollection.insertOne(user);
+  res.send(result);
+})
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -113,7 +122,10 @@ run().catch(console.dir);
 app.get('/', (req, res) => {
   res.send('Coffee making server is running');
 });
-
+//for user
+app.get('/user',(req,res)=>{
+  res.send('user endpoint')
+})
 // Start the Express server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
