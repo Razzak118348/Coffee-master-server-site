@@ -23,7 +23,7 @@ const client = new MongoClient(uri, {
 
 // Database and collection reference
 let coffeeCollection;
-
+let userCollection;
 // Connect to MongoDB
 async function run() {
   try {
@@ -33,7 +33,7 @@ async function run() {
 
     // Initialize the coffee collection
     coffeeCollection = client.db('coffeeDB').collection('coffee');
-const userCollection = client.db('coffeeDB').collection('user');
+      userCollection = client.db('coffeeDB').collection('user');
 //getitem from database :
 
 app.get('/coffee',async(req,res)=>{
@@ -95,12 +95,28 @@ app.delete('/coffee/:id',async(req,res)=>{
 
 
 //user related api
+
+app.get('/user',async(req,res)=>{
+const  cursor=userCollection.find();
+const users =  await cursor.toArray()
+res.send(users);
+
+})
+
 app.post('/user',async(req,res)=>{
   const user = req.body;
   const result = await userCollection.insertOne(user);
   res.send(result);
 })
 
+//delete
+app.delete('/user/:id',async(req,res)=>{
+const id = req.params.id;
+const query = {_id : new  ObjectId(id) };
+const result =  await userCollection.deleteOne(query);
+res.send(result)
+
+})
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -122,10 +138,7 @@ run().catch(console.dir);
 app.get('/', (req, res) => {
   res.send('Coffee making server is running');
 });
-//for user
-app.get('/user',(req,res)=>{
-  res.send('user endpoint')
-})
+
 // Start the Express server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
